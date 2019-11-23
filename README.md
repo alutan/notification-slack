@@ -4,16 +4,27 @@ This service expects a **JSON** object in the http body, containing the followin
 
 There is another implementation of this service called *notification-twitter*, which sends the message to **Twitter** instead.  If both implmentations of the *Notification* service are installed, you could use **Istio** *routing rules* to determine which gets used, and under what conditions.  An example Istio route rule is in this repository (and another is in the *notification-twitter* repository).
 
-### Deploy
+ ### Prerequisites for OCP Deployment
+ This project requires three secrets: `jwt`, and `openwhisk`.
+ 
+ ### Build and Deploy to OCP
+To build `notification-slack` clone this repo and run:
+```
+cd templates
 
-Use WebSphere Liberty helm chart to deploy Slack Notification microservice:
-```bash
-helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable/
-helm install ibm-charts/ibm-websphere-liberty -f <VALUES_YAML> -n <RELEASE_NAME> --tls
+oc create -f notification-slack-liberty-projects.yaml
+
+oc create -f notification-slack-liberty-deploy.yaml -n notification-slack-liberty-dev
+oc create -f notification-slack-liberty-deploy.yaml -n notification-slack-liberty-stage
+oc create -f notification-slack-liberty-deploy.yaml -n notification-slack-liberty-prod
+
+oc new-app notification-slack-liberty-deploy -n notification-slack-liberty-dev
+oc new-app notification-slack-liberty-deploy -n notification-slack-liberty-stage
+oc new-app notification-slack-liberty-deploy -n notification-slack-liberty-prod
+
+oc create -f notification-slack-liberty-build.yaml -n notification-slack-liberty-build
+
+oc new-app notification-slack-liberty-build -n notification-slack-liberty-build
+
 ```
 
-In practice this means you'll run something like:
-```bash
-helm repo add ibm-charts https://raw.githubusercontent.com/IBM/charts/master/repo/stable/
-helm install ibm-charts/ibm-websphere-liberty -f manifests/notification-slack-values.yaml -n notification-slack --namespace stock-trader --tls
-```
